@@ -78,28 +78,35 @@ void VehicleCtrl(uint8_t *ptr)
   Motor_R_SPEED = *Buf++;
 
   //------------------------------------------//
-  // Motor Control
+  // Motor Control Left
   //------------------------------------------//
-  if(Motor_L_DIR == 1 && Motor_R_DIR == 1){
+  if(Motor_L_DIR == 1){
     analogWrite(Motor_L_In1, Motor_L_SPEED);
-    digitalWrite(Motor_L_In2, LOW);
-    
-    analogWrite(Motor_R_In1, Motor_R_SPEED);
-    digitalWrite(Motor_R_In2, LOW);
+    digitalWrite(Motor_L_In2, LOW); 
   }
-  else if(Motor_L_DIR == 2 && Motor_R_DIR == 2){
+  else if(Motor_L_DIR ==2){
     analogWrite(Motor_L_In2, Motor_L_SPEED);
-    digitalWrite(Motor_L_In1, LOW);
-    
+    digitalWrite(Motor_L_In1, LOW); 
+  }
+  else{
+    analogWrite(Motor_L_In1, 0);
+    analogWrite(Motor_L_In2, 0); 
+  }
+
+  //------------------------------------------//
+  // Motor Control Right
+  //------------------------------------------//
+  if(Motor_R_DIR == 1){
+    analogWrite(Motor_R_In1, Motor_R_SPEED);
+    digitalWrite(Motor_R_In2, LOW); 
+  }
+  else if(Motor_R_DIR == 2){
     analogWrite(Motor_R_In2, Motor_R_SPEED);
-    digitalWrite(Motor_R_In1, LOW);
+    digitalWrite(Motor_R_In1, LOW); 
   }
   else{
     analogWrite(Motor_R_In1, 0);
-    analogWrite(Motor_R_In2, 0);
-
-    analogWrite(Motor_L_In1, 0);
-    analogWrite(Motor_L_In2, 0);
+    analogWrite(Motor_R_In2, 0); 
   }
 
   //------------------------------------------//
