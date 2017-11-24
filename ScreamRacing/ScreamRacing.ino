@@ -27,9 +27,116 @@
  */
 #include <SoftwareSerial.h>
 
-SoftwareSerial BTSerial(2, 3); // RX, TX
+#define Motor_R_In1 10
+#define Motor_R_In2 11
+#define Motor_R_En  12
+#define Motor_L_In1 5
+#define Motor_L_In2 6
+#define Motor_L_En  7
+#define Led_FR  9
+#define Led_FL  9
+#define Led_MR  16
+#define Led_ML  17
+#define Tx_Sim  3
+#define Rx_Sim  2  
 
-static void LOG(const char *fmt, ... ){
+SoftwareSerial BTSerial(Rx_Sim, Tx_Sim); // RX, TX
+
+void VehicleSetup()
+{
+  pinMode(Motor_R_In1, OUTPUT);
+  pinMode(Motor_R_In2, OUTPUT);
+  pinMode(Motor_R_En, OUTPUT);
+  pinMode(Motor_L_In1, OUTPUT);
+  pinMode(Motor_L_In2, OUTPUT);
+  pinMode(Motor_L_En, OUTPUT);
+
+  pinMode(Led_FR, OUTPUT);
+  //pinMode(Led_FL, OUTPUT);
+  pinMode(Led_MR, OUTPUT);
+  pinMode(Led_ML, OUTPUT);
+
+  digitalWrite(Motor_R_En, HIGH);
+  digitalWrite(Motor_L_En, HIGH);
+}
+
+void VehicleCtrl(uint8_t *ptr)
+{
+  uint8_t *Buf = ptr;
+  uint8_t Motor_R_DIR, Motor_R_SPEED;
+  uint8_t Motor_L_DIR, Motor_L_SPEED;
+  uint8_t Led_R_Front, Led_L_Front;
+  uint8_t Led_R_Middle, Led_L_Middle;
+
+  Led_L_Front = *Buf++;
+  Led_R_Front = *Buf++;
+  Led_L_Middle = *Buf++;
+  Led_R_Middle = *Buf++;
+  Motor_L_DIR = *Buf++;
+  Motor_L_SPEED = *Buf++;
+  Motor_R_DIR = *Buf++;
+  Motor_R_SPEED = *Buf++;
+
+  //------------------------------------------//
+  // Motor Control Left
+  //------------------------------------------//
+  if(Motor_L_DIR == 1){
+    analogWrite(Motor_L_In1, Motor_L_SPEED);
+    digitalWrite(Motor_L_In2, LOW); 
+  }
+  else if(Motor_L_DIR ==2){
+    analogWrite(Motor_L_In2, Motor_L_SPEED);
+    digitalWrite(Motor_L_In1, LOW); 
+  }
+  else{
+    analogWrite(Motor_L_In1, 0);
+    analogWrite(Motor_L_In2, 0); 
+  }
+
+  //------------------------------------------//
+  // Motor Control Right
+  //------------------------------------------//
+  if(Motor_R_DIR == 1){
+    analogWrite(Motor_R_In1, Motor_R_SPEED);
+    digitalWrite(Motor_R_In2, LOW); 
+  }
+  else if(Motor_R_DIR == 2){
+    analogWrite(Motor_R_In2, Motor_R_SPEED);
+    digitalWrite(Motor_R_In1, LOW); 
+  }
+  else{
+    analogWrite(Motor_R_In1, 0);
+    analogWrite(Motor_R_In2, 0); 
+  }
+
+  //------------------------------------------//
+  // Led Control
+  //------------------------------------------//
+  if(Led_L_Front == 1 && Led_R_Front == 1){
+    digitalWrite(Led_FR, HIGH);
+    digitalWrite(Led_FL, HIGH);
+  }
+  else{
+    digitalWrite(Led_FR, LOW);
+    digitalWrite(Led_FL, LOW);
+  }
+
+  if(Led_R_Middle == 1){
+    digitalWrite(Led_MR, HIGH);
+  }
+  else{
+    digitalWrite(Led_MR, LOW);
+  }
+
+  if(Led_L_Middle == 1){
+    digitalWrite(Led_ML, HIGH);
+  }
+  else{
+    digitalWrite(Led_ML, LOW);
+  }
+}
+
+void LOG(const char *fmt, ... ){
     char tmp[128]; // resulting string limited to 128 chars
     va_list args;
     va_start (args, fmt );
@@ -57,6 +164,8 @@ void setup() {
     }
 #endif
     Serial.println("BLE init done");
+
+    VehicleSetup();
 }
 
 uint8_t buf[10];
@@ -74,6 +183,7 @@ void loop() { // run over and over
                   "R motor: %d, speed: %d\n",
                   buf[0], buf[1], buf[2], buf[3],
                   buf[4], buf[5], buf[6], buf[7]);
+            VehicleCtrl(&buf[0]);
         } else {
             LOG("Wrong command!\n");
         }
